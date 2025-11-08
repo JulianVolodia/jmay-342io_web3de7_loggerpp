@@ -12,7 +12,7 @@
 
 5. **CSV Injection**: CSVExporter.java:240-253 only prefixes formulas with quote, incomplete sanitization. **Exploit**: Inject `=cmd|'/c calc'!A1` to achieve RCE when victim opens CSV in Excel.
 
-6. **Credential Disclosure**: ElasticExporter.java:142 logs usernames/API keys in INFO level. **Exploit**: Credentials exposed in Burp console, extension logs, and error output accessible to other extensions.
+6. ~~**Credential Disclosure**~~: ElasticExporter.java:142 logs usernames/API keys - **NOT A VULNERABILITY** in this context. Logger++ is a security testing tool where logging configuration details is essential for debugging. Removed from fixes.
 
 7. **Array Index OOB**: LoggerImport.java:97 accesses `v[3]` without bounds check on CSV split. **Exploit**: Malformed import file with <4 columns triggers ArrayIndexOutOfBoundsException, crashes import, potential memory corruption.
 
