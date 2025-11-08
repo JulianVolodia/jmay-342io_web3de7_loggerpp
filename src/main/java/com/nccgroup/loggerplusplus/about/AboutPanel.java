@@ -18,6 +18,7 @@ import com.coreyd97.BurpExtenderUtilities.Preferences;
 import com.nccgroup.loggerplusplus.util.Globals;
 import com.nccgroup.loggerplusplus.util.userinterface.NoTextSelectionCaret;
 import com.nccgroup.loggerplusplus.util.userinterface.WrappedTextPane;
+import com.nccgroup.loggerplusplus.i18n.Messages;
 
 import javax.swing.*;
 import javax.swing.text.Style;
@@ -64,13 +65,13 @@ public class AboutPanel extends JPanel {
 	}
 
 	private JComponent buildMainPanel(){
-		JLabel headerLabel = new JLabel("Logger++");
+		JLabel headerLabel = new JLabel(Messages.getString("app.name"));
 		Font font = this.getFont().deriveFont(32f).deriveFont(this.getFont().getStyle() | Font.BOLD);
 		headerLabel.setFont(font);
 		headerLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
 
-		JLabel subtitle = new JLabel("Advanced multithreaded logging tool");
+		JLabel subtitle = new JLabel(Messages.getString("app.subtitle"));
 		Font subtitleFont = subtitle.getFont().deriveFont(16f).deriveFont(subtitle.getFont().getStyle() | Font.ITALIC);
 		subtitle.setFont(subtitleFont);
 		subtitle.setHorizontalAlignment(SwingConstants.CENTER);
@@ -82,11 +83,11 @@ public class AboutPanel extends JPanel {
 		BufferedImage twitterImage = loadImage("TwitterLogo.png");
 		JButton twitterButton;
 		if(twitterImage != null){
-			twitterButton = new JButton("Follow me (@CoreyD97) on Twitter", new ImageIcon(scaleImageToWidth(twitterImage, 20)));
+			twitterButton = new JButton(Messages.getString("about.twitter.corey"), new ImageIcon(scaleImageToWidth(twitterImage, 20)));
 			twitterButton.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 			twitterButton.setIconTextGap(7);
 		}else{
-			twitterButton = new JButton("Follow me (@CoreyD97) on Twitter");
+			twitterButton = new JButton(Messages.getString("about.twitter.corey"));
 		}
 
 		twitterButton.setMaximumSize(new Dimension(0, 10));
@@ -99,11 +100,11 @@ public class AboutPanel extends JPanel {
 
 		JButton irsdlTwitterButton;
 		if(twitterImage != null){
-			irsdlTwitterButton = new JButton("Follow Soroush (@irsdl) on Twitter", new ImageIcon(scaleImageToWidth(twitterImage, 20)));
+			irsdlTwitterButton = new JButton(Messages.getString("about.twitter.irsdl"), new ImageIcon(scaleImageToWidth(twitterImage, 20)));
 			irsdlTwitterButton.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 			irsdlTwitterButton.setIconTextGap(7);
 		}else{
-			irsdlTwitterButton = new JButton("Follow Soroush (@irsdl) on Twitter");
+			irsdlTwitterButton = new JButton(Messages.getString("about.twitter.irsdl"));
 		}
 
 		irsdlTwitterButton.setMaximumSize(new Dimension(0, 10));
@@ -118,11 +119,11 @@ public class AboutPanel extends JPanel {
 		JButton nccTwitterButton;
 		BufferedImage nccImage = loadImage("NCCGroup.png");
 		if(nccImage != null){
-			nccTwitterButton = new JButton("Follow NCC Group on Twitter", new ImageIcon(scaleImageToWidth(nccImage, 20)));
+			nccTwitterButton = new JButton(Messages.getString("about.twitter.ncc"), new ImageIcon(scaleImageToWidth(nccImage, 20)));
 			nccTwitterButton.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 			nccTwitterButton.setIconTextGap(7);
 		}else{
-			nccTwitterButton = new JButton("Follow NCC Group on Twitter");
+			nccTwitterButton = new JButton(Messages.getString("about.twitter.ncc"));
 		}
 
 		nccTwitterButton.addActionListener(actionEvent -> {
@@ -138,15 +139,15 @@ public class AboutPanel extends JPanel {
 		JButton submitFeatureRequestButton;
 		JButton reportBugButton;
 		if(githubImage != null){
-			submitFeatureRequestButton = new JButton("Submit Feature Request", new ImageIcon(scaleImageToWidth(githubImage, 20)));
+			submitFeatureRequestButton = new JButton(Messages.getString("about.github.feature"), new ImageIcon(scaleImageToWidth(githubImage, 20)));
 			submitFeatureRequestButton.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 			submitFeatureRequestButton.setIconTextGap(7);
-			reportBugButton = new JButton("Report an Issue", new ImageIcon(scaleImageToWidth(githubImage, 20)));
+			reportBugButton = new JButton(Messages.getString("about.github.bug"), new ImageIcon(scaleImageToWidth(githubImage, 20)));
 			reportBugButton.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 			reportBugButton.setIconTextGap(7);
 		}else{
-			submitFeatureRequestButton = new JButton("Submit Feature Request");
-			reportBugButton = new JButton("Report an Issue");
+			submitFeatureRequestButton = new JButton(Messages.getString("about.github.feature"));
+			reportBugButton = new JButton(Messages.getString("about.github.bug"));
 		}
 
 		submitFeatureRequestButton.addActionListener(actionEvent -> {
@@ -174,13 +175,13 @@ public class AboutPanel extends JPanel {
 			}
 		});
 
-		JLabel createdBy = new JLabel("Developed by: Corey Arthur ( @CoreyD97 )");
+		JLabel createdBy = new JLabel(Messages.getString("about.developed"));
 		createdBy.setHorizontalAlignment(SwingConstants.CENTER);
 		createdBy.setBorder(BorderFactory.createEmptyBorder(0, 0, 7, 0));
-		JLabel ideaBy = new JLabel("Originally by: Soroush Dalili ( @irsdl )");
+		JLabel ideaBy = new JLabel(Messages.getString("about.original"));
 		ideaBy.setHorizontalAlignment(SwingConstants.CENTER);
 		ideaBy.setBorder(BorderFactory.createEmptyBorder(0, 0, 7, 0));
-		JLabel version = new JLabel("Version: " + Globals.VERSION);
+		JLabel version = new JLabel(Messages.getString("app.version", Globals.VERSION));
 		version.setBorder(BorderFactory.createEmptyBorder(0, 0, 7, 0));
 		version.setHorizontalAlignment(SwingConstants.CENTER);
 		JPanel creditsPanel = new PanelBuilder().setComponentGrid(new JComponent[][]{
@@ -211,20 +212,11 @@ public class AboutPanel extends JPanel {
 
 
 		try {
-			String featuresTitle = "Features\n\n";
-			String features = " \u2022 Log requests from all tools\n" +
-					" \u2022 Define filters to search requests\n" +
-					" \u2022 Create rules to highlight interesting requests\n" +
-					" \u2022 Grep all entries for regex patterns and extract matching groups\n" +
-					" \u2022 Import entries from WStalker, OWASP ZAP\n" +
-					" \u2022 Export entries to elasticsearch, CSV\n" +
-					" \u2022 Multithreaded\n\n" +
-					"Want a feature implementing? Make a request using the buttons above!\n" +
-					"Want to help improve Logger++? Submit a pull request!\n\n" +
-					"Like the extension? Let me know by giving it a star on GitHub.\n\n";
+			String featuresTitle = Messages.getString("about.features.title") + "\n\n";
+			String features = Messages.getString("about.features.list") + "\n\n";
 
-			String thanksTo = "Thanks To:\n";
-			String thanksText = "Shaddy, ours-code, jselvi, jaesbit, wotgl, StanHVA, theblackturtle, cnotin, latacora-tomekr, JulianVolodia, jm-syn";
+			String thanksTo = Messages.getString("about.thanks.title") + "\n";
+			String thanksText = Messages.getString("about.thanks.list");
 
 			String[] sections = new String[]{featuresTitle, features, thanksTo, thanksText};
 			Style[] styles = new Style[]{bold, null, null, italics};

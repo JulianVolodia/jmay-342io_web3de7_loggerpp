@@ -5,6 +5,7 @@ import com.coreyd97.BurpExtenderUtilities.VariableViewPanel;
 import com.nccgroup.loggerplusplus.LoggerPlusPlus;
 import com.nccgroup.loggerplusplus.util.Globals;
 import com.nccgroup.loggerplusplus.util.userinterface.dialog.ColorFilterDialog;
+import com.nccgroup.loggerplusplus.i18n.Messages;
 import org.apache.logging.log4j.Level;
 
 import javax.swing.*;
@@ -26,7 +27,7 @@ public class LoggerMenu extends javax.swing.JMenu {
         this.add(loggerPlusPlus.getMainViewController().getPopOutWrapper().getPopoutMenuItem());
         this.add(loggerPlusPlus.getLogViewController().getLogViewPanel().getRequestViewerPanel().getPopoutMenuItem());
 
-        JMenuItem colorFilters = new JMenuItem(new AbstractAction("Color Filters") {
+        JMenuItem colorFilters = new JMenuItem(new AbstractAction(Messages.getString("menu.colorfilters")) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 new ColorFilterDialog(LoggerPlusPlus.instance.getLibraryController()).setVisible(true);
@@ -34,10 +35,10 @@ public class LoggerMenu extends javax.swing.JMenu {
         });
         this.add(colorFilters);
 
-        JMenu viewMenu = new JMenu("View");
+        JMenu viewMenu = new JMenu(Messages.getString("menu.view"));
         VariableViewPanel.View currentView = preferences.getSetting(Globals.PREF_LAYOUT);
         ButtonGroup bGroup = new ButtonGroup();
-        JRadioButtonMenuItem viewMenuItem = new JRadioButtonMenuItem(new AbstractAction("Top/Bottom Split") {
+        JRadioButtonMenuItem viewMenuItem = new JRadioButtonMenuItem(new AbstractAction(Messages.getString("menu.view.vertical")) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 loggerPlusPlus.getLogViewController().setPanelLayout(VariableViewPanel.View.VERTICAL);
@@ -46,7 +47,7 @@ public class LoggerMenu extends javax.swing.JMenu {
         viewMenuItem.setSelected(currentView == VariableViewPanel.View.VERTICAL);
         viewMenu.add(viewMenuItem);
         bGroup.add(viewMenuItem);
-        viewMenuItem = new JRadioButtonMenuItem(new AbstractAction("Left/Right Split") {
+        viewMenuItem = new JRadioButtonMenuItem(new AbstractAction(Messages.getString("menu.view.horizontal")) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 loggerPlusPlus.getLogViewController().setPanelLayout(VariableViewPanel.View.HORIZONTAL);
@@ -55,7 +56,7 @@ public class LoggerMenu extends javax.swing.JMenu {
         viewMenuItem.setSelected(currentView == VariableViewPanel.View.HORIZONTAL);
         viewMenu.add(viewMenuItem);
         bGroup.add(viewMenuItem);
-        viewMenuItem = new JRadioButtonMenuItem(new AbstractAction("Tabs") {
+        viewMenuItem = new JRadioButtonMenuItem(new AbstractAction(Messages.getString("menu.view.tabs")) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 loggerPlusPlus.getLogViewController().setPanelLayout(VariableViewPanel.View.TABS);
@@ -66,10 +67,10 @@ public class LoggerMenu extends javax.swing.JMenu {
         bGroup.add(viewMenuItem);
         this.add(viewMenu);
 
-        viewMenu = new JMenu("Request/Response View");
+        viewMenu = new JMenu(Messages.getString("menu.reqresp.view"));
         VariableViewPanel.View currentReqRespView = preferences.getSetting(Globals.PREF_MESSAGE_VIEW_LAYOUT);
         bGroup = new ButtonGroup();
-        viewMenuItem = new JRadioButtonMenuItem(new AbstractAction("Top/Bottom Split") {
+        viewMenuItem = new JRadioButtonMenuItem(new AbstractAction(Messages.getString("menu.view.vertical")) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 loggerPlusPlus.getLogViewController().setEntryViewerLayout(VariableViewPanel.View.VERTICAL);
@@ -78,7 +79,7 @@ public class LoggerMenu extends javax.swing.JMenu {
         viewMenu.add(viewMenuItem);
         bGroup.add(viewMenuItem);
         viewMenuItem.setSelected(currentReqRespView == VariableViewPanel.View.VERTICAL);
-        viewMenuItem = new JRadioButtonMenuItem(new AbstractAction("Left/Right Split") {
+        viewMenuItem = new JRadioButtonMenuItem(new AbstractAction(Messages.getString("menu.view.horizontal")) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 loggerPlusPlus.getLogViewController().setEntryViewerLayout(VariableViewPanel.View.HORIZONTAL);
@@ -87,7 +88,7 @@ public class LoggerMenu extends javax.swing.JMenu {
         viewMenu.add(viewMenuItem);
         bGroup.add(viewMenuItem);
         viewMenuItem.setSelected(currentReqRespView == VariableViewPanel.View.HORIZONTAL);
-        viewMenuItem = new JRadioButtonMenuItem(new AbstractAction("Tabs") {
+        viewMenuItem = new JRadioButtonMenuItem(new AbstractAction(Messages.getString("menu.view.tabs")) {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 loggerPlusPlus.getLogViewController().setEntryViewerLayout(VariableViewPanel.View.TABS);
@@ -111,7 +112,7 @@ public class LoggerMenu extends javax.swing.JMenu {
 
         logLevelGroup.add(debug);
         logLevelGroup.add(info);
-        JMenu logLevelMenu = new JMenu("Log Level");
+        JMenu logLevelMenu = new JMenu(Messages.getString("menu.loglevel"));
         logLevelMenu.add(debug);
         logLevelMenu.add(info);
 
