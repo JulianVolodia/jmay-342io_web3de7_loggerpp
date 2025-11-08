@@ -286,9 +286,10 @@ public class ElasticExporter extends AutomaticLogExporter implements ExportPanel
     }
 
     /**
-     * Validates Elasticsearch index name to prevent injection attacks
+     * Validates Elasticsearch index name and warns about potential issues
+     * Note: Warnings only - pentester may have legitimate reasons for unusual index names
      * @param indexName Index name to validate
-     * @throws Exception if index name is invalid or dangerous
+     * @throws Exception only if index name is null or empty
      */
     private void validateIndexName(String indexName) throws Exception {
         if (indexName == null || indexName.trim().isEmpty()) {
@@ -296,41 +297,40 @@ public class ElasticExporter extends AutomaticLogExporter implements ExportPanel
         }
 
         // Elasticsearch index name restrictions (per official documentation)
-        // - Must be lowercase
-        // - Cannot contain: \, /, *, ?, ", <, >, |, ` ` (space), comma, #
-        // - Cannot start with -, _, +
-        // - Cannot be . or ..
-        // - Cannot be longer than 255 bytes
+        // Note: We warn but don't block - pentester may know what they're doing
 
         if (indexName.length() > 255) {
-            throw new Exception("Index name too long (max 255 characters)");
+            logger.warn("Index name is very long (" + indexName.length() + " characters). Elasticsearch limit is 255. This may fail.");
         }
 
         if (indexName.equals(".") || indexName.equals("..")) {
-            throw new Exception("Index name cannot be '.' or '..'");
+            logger.warn("Index name '" + indexName + "' may not be accepted by Elasticsearch (reserved names).");
         }
 
-        char firstChar = indexName.charAt(0);
-        if (firstChar == '-' || firstChar == '_' || firstChar == '+') {
-            throw new Exception("Index name cannot start with -, _, or +");
-        }
-
-        // Check for dangerous wildcard characters that could enable unauthorized access
-        String[] dangerousChars = {"*", "?", "..", "//", "\\", "|", "<", ">", "\"", "#"};
-        for (String dangerousChar : dangerousChars) {
-            if (indexName.contains(dangerousChar)) {
-                throw new Exception("Index name contains forbidden character: " + dangerousChar);
+        if (indexName.length() > 0) {
+            char firstChar = indexName.charAt(0);
+            if (firstChar == '-' || firstChar == '_' || firstChar == '+') {
+                logger.warn("Index name starts with '" + firstChar + "'. This violates Elasticsearch naming rules and may fail.");
             }
         }
 
-        // Must be lowercase (Elasticsearch requirement)
-        if (!indexName.equals(indexName.toLowerCase())) {
-            throw new Exception("Index name must be lowercase");
+        // Warn about wildcard characters (but allow - may be intentional for pattern matching)
+        if (indexName.contains("*") || indexName.contains("?")) {
+            logger.warn("Index name contains wildcard characters (* or ?). This may enable pattern-based index access.");
         }
 
-        // Only allow alphanumeric, hyphen, and underscore (secure subset)
-        if (!indexName.matches("^[a-z0-9][a-z0-9_-]*$")) {
-            throw new Exception("Index name can only contain lowercase letters, numbers, hyphens, and underscores");
+        // Warn about other potentially problematic characters
+        String[] problematicChars = {"..", "//", "\\", "|", "<", ">", "\"", "#", " "};
+        for (String problematic : problematicChars) {
+            if (indexName.contains(problematic)) {
+                logger.warn("Index name contains '" + problematic + "' which may cause issues with Elasticsearch.");
+                break;
+            }
+        }
+
+        // Warn if not lowercase (Elasticsearch requirement)
+        if (!indexName.equals(indexName.toLowerCase())) {
+            logger.warn("Index name contains uppercase characters. Elasticsearch requires lowercase. This will likely fail.");
         }
     }
 

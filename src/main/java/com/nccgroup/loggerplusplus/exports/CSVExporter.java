@@ -241,30 +241,19 @@ public class CSVExporter extends AutomaticLogExporter implements ContextMenuExpo
         if(string == null) return null;
         if(string.length() == 0) return "";
 
-        // Fixed: Comprehensive CSV injection protection
-        // Escape ALL formula-triggering characters, not just prefix
+        // Note: Only prefix with quote to prevent CSV injection when opened in Excel
+        // DO NOT modify the actual data - Logger++ must preserve exact data for evidence
         char first = string.charAt(0);
-
-        // Check if starts with dangerous formula characters
-        if (first == '=' || first == '+' || first == '-' || first == '@' ||
-            first == '\t' || first == '\r' || first == '\n') {
-            // Prepend with single quote AND escape the character to prevent execution
-            string = "'" + string.replace("=", "'=")
-                                  .replace("+", "'+")
-                                  .replace("-", "'-")
-                                  .replace("@", "'@");
+        switch (first){
+            case '=':
+            case '-':
+            case '+':
+            case '@': {
+                // Prefix with quote - this prevents formula execution in Excel
+                // but preserves the original data for the pentester
+                return "'" + string;
+            }
         }
-
-        // Also check for pipe character which can be used in DDE attacks
-        if (string.contains("|")) {
-            string = string.replace("|", "'|");
-        }
-
-        // Remove or escape any embedded formulas (defense in depth)
-        string = string.replace("\r\n=", "\r\n'=")
-                      .replace("\n=", "\n'=")
-                      .replace("\r=", "\r'=");
-
         return string;
     }
 

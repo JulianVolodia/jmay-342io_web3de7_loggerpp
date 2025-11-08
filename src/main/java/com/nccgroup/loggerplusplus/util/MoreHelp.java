@@ -248,42 +248,50 @@ public class MoreHelp {
 	}
 
 	/**
-	 * Validates file path to prevent path traversal and symlink attacks
+	 * Validates file path and warns about potential security concerns
+	 * Note: Does NOT block operations - pentesters may have legitimate reasons for unusual file locations
 	 * @param file File to validate
-	 * @throws Exception if path is invalid or dangerous
 	 */
 	private static void validateFilePath(File file) throws Exception {
 		if (file == null) {
 			throw new Exception("File cannot be null");
 		}
 
-		// Get canonical path to resolve symlinks and relative paths
-		File canonicalFile = file.getCanonicalFile();
-		String canonicalPath = canonicalFile.getAbsolutePath();
+		try {
+			// Get canonical path to resolve symlinks and relative paths
+			File canonicalFile = file.getCanonicalFile();
+			String canonicalPath = canonicalFile.getAbsolutePath();
 
-		// Check if it's actually a file and not a symlink to a directory or special file
-		if (canonicalFile.exists() && !canonicalFile.isFile()) {
-			throw new Exception("Selected path is not a regular file");
-		}
-
-		// Prevent writing to system directories
-		String[] forbiddenPaths = {
-			"/etc/", "/sys/", "/proc/", "/dev/",
-			"C:\\Windows\\System32\\", "C:\\Windows\\",
-			"/usr/bin/", "/usr/sbin/", "/bin/", "/sbin/"
-		};
-
-		for (String forbidden : forbiddenPaths) {
-			if (canonicalPath.startsWith(forbidden)) {
-				throw new Exception("Cannot write to system directory: " + forbidden);
+			// Warn if not a regular file (but allow it - pentester may know what they're doing)
+			if (canonicalFile.exists() && !canonicalFile.isFile()) {
+				System.err.println("Warning: Selected path is not a regular file. Proceed with caution.");
 			}
-		}
 
-		// Check if original path and canonical path match (symlink detection)
-		String originalPath = file.getAbsolutePath();
-		if (!canonicalPath.equals(new File(originalPath).getCanonicalPath())) {
-			// Warn but don't fail - user may legitimately use symlinks
-			System.err.println("Warning: File path contains symbolic links");
+			// Warn about system directories (but don't block - pentester may need this)
+			String[] sensitivePathsUnix = {"/etc/", "/sys/", "/proc/", "/dev/", "/usr/bin/", "/usr/sbin/", "/bin/", "/sbin/"};
+			String[] sensitivePathsWin = {"C:\\Windows\\System32\\", "C:\\Windows\\"};
+
+			for (String sensitive : sensitivePathsUnix) {
+				if (canonicalPath.startsWith(sensitive)) {
+					System.err.println("Warning: Writing to system directory: " + sensitive + ". This is unusual and may be dangerous.");
+					break;
+				}
+			}
+			for (String sensitive : sensitivePathsWin) {
+				if (canonicalPath.startsWith(sensitive)) {
+					System.err.println("Warning: Writing to Windows system directory: " + sensitive + ". This is unusual and may be dangerous.");
+					break;
+				}
+			}
+
+			// Warn about symlinks (but allow - may be legitimate)
+			String originalPath = file.getAbsolutePath();
+			if (!canonicalPath.equals(new File(originalPath).getCanonicalPath())) {
+				System.err.println("Warning: File path contains symbolic links: " + originalPath + " -> " + canonicalPath);
+			}
+		} catch (Exception e) {
+			// If validation fails, warn but don't block
+			System.err.println("Warning: Could not fully validate file path: " + e.getMessage());
 		}
 	}
 

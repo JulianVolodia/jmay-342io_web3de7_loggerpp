@@ -105,22 +105,36 @@ public class GrepperController {
     private void processMatches(GrepResults grepResults, Pattern pattern, byte[] content, boolean isRequest) {
         final Matcher respMatcher = pattern.matcher(new String(content));
 
-        // ReDoS protection: Set timeout for regex operations (5 seconds per match attempt)
-        final long REGEX_TIMEOUT_MS = 5000;
+        // ReDoS protection: Generous limits for pentesting scenarios
+        // Pentesters may have complex legitimate searches on large responses
+        final long REGEX_TIMEOUT_MS = 60000; // 60 seconds - enough for complex legitimate searches
         final long startTime = System.currentTimeMillis();
         int matchCount = 0;
-        final int MAX_MATCHES = 10000; // Prevent excessive matches
+        final int MAX_MATCHES = 1000000; // 1 million matches - very generous for legitimate use
+
+        long lastWarningTime = startTime;
+        final long WARNING_INTERVAL_MS = 10000; // Warn every 10 seconds if still processing
 
         while (!Thread.currentThread().isInterrupted()) {
-            // Check timeout to prevent ReDoS attacks
-            if (System.currentTimeMillis() - startTime > REGEX_TIMEOUT_MS) {
-                System.err.println("Regex matching timed out after " + REGEX_TIMEOUT_MS + "ms - possible ReDoS attack detected");
+            // Check timeout to prevent extreme ReDoS attacks (but allow reasonable complex searches)
+            long elapsed = System.currentTimeMillis() - startTime;
+            if (elapsed > REGEX_TIMEOUT_MS) {
+                System.err.println(String.format("Regex matching exceeded timeout (%d seconds). Processed %d matches. Consider simplifying your regex pattern.",
+                    REGEX_TIMEOUT_MS / 1000, matchCount));
                 break;
             }
 
-            // Check match limit
+            // Periodic warning for long-running searches (helps user know it's still working)
+            if (elapsed - lastWarningTime > WARNING_INTERVAL_MS && matchCount > 1000) {
+                System.err.println(String.format("Regex search still processing... %d matches found so far (%.1f seconds elapsed)",
+                    matchCount, elapsed / 1000.0));
+                lastWarningTime = elapsed;
+            }
+
+            // Check match limit (very generous for legitimate pentesting)
             if (matchCount >= MAX_MATCHES) {
-                System.err.println("Maximum match limit reached (" + MAX_MATCHES + ") - stopping to prevent resource exhaustion");
+                System.err.println(String.format("Reached maximum match limit (%d). If you need more matches, this may indicate an overly broad regex pattern.",
+                    MAX_MATCHES));
                 break;
             }
 
