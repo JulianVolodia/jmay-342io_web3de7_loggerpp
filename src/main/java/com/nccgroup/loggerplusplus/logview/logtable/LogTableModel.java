@@ -83,8 +83,14 @@ public class LogTableModel extends AbstractTableModel implements ColorFilterList
         this.fireTableRowsInserted(index, index);
 
         int excess = Math.max(entries.size() - controller.getMaximumEntries(), 0);
-        for (int excessIndex = 0; excessIndex < excess; excessIndex++) {
-            removeEntryAtRow(0); // Always remove the oldest entry
+        // Optimization: Remove excess entries in a single batch operation
+        // Old approach: O(excess * n) - removing from index 0 repeatedly
+        // New approach: O(n) - single subList().clear() operation
+        if (excess > 0) {
+            synchronized (entries) {
+                entries.subList(0, excess).clear();
+            }
+            this.fireTableRowsDeleted(0, excess - 1);
         }
     }
 

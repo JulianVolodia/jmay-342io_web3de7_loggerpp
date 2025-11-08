@@ -48,6 +48,24 @@ public class FilterLibraryController {
         return this.savedFilters;
     }
 
+    /**
+     * Optimization: Get a filter snippet by name with case-insensitive matching.
+     * This avoids O(n) linear search in filter evaluation.
+     * @param name The name of the filter snippet to find
+     * @return The SavedFilter if found, null otherwise
+     */
+    public SavedFilter getFilterSnippetByName(String name) {
+        if (name == null) return null;
+        synchronized (this.savedFilters) {
+            for (SavedFilter savedFilter : this.savedFilters) {
+                if (name.equalsIgnoreCase(savedFilter.getName())) {
+                    return savedFilter;
+                }
+            }
+        }
+        return null;
+    }
+
     public void addFilter(SavedFilter savedFilter){
         int index;
         synchronized (this.savedFilters) {

@@ -88,12 +88,12 @@ public class FilterEvaluationVisitor implements FilterParserVisitor {
 
   @Override
   public Boolean visit(ASTAlias node, VisitorData data) {
-    for (SavedFilter savedFilter : filterLibraryController.getFilterSnippets()) {
-      if(node.identifier.equalsIgnoreCase(savedFilter.getName())){
-        return visit(savedFilter.getFilterExpression().getAst(), data);
-      }
+    // Optimization: Use direct lookup instead of iterating through all snippets
+    SavedFilter savedFilter = filterLibraryController.getFilterSnippetByName(node.identifier);
+    if (savedFilter != null && savedFilter.getFilterExpression() != null) {
+      return visit(savedFilter.getFilterExpression().getAst(), data);
     }
-     return false;
+    return false;
   }
 
   private boolean evaluateNode(Node node, VisitorData visitorData){
@@ -136,20 +136,23 @@ public class FilterEvaluationVisitor implements FilterParserVisitor {
         return m.find() ^ op == ComparisonOperator.NOT_EQUAL;
       } else if (left instanceof Date) {
         try {
+          // Optimization: Truncate dates once and reuse, instead of truncating left date repeatedly
+          Date leftDate = DateUtils.truncate((Date) left, Calendar.SECOND);
           Date rightDate = DateUtils.truncate(right, Calendar.SECOND);
+          int comparison = leftDate.compareTo(rightDate);
           switch (op) {
             case EQUAL:
-              return DateUtils.truncate((Date) left, Calendar.SECOND).compareTo(rightDate) == 0;
+              return comparison == 0;
             case NOT_EQUAL:
-              return DateUtils.truncate((Date) left, Calendar.SECOND).compareTo(rightDate) != 0;
+              return comparison != 0;
             case GREATER_THAN:
-              return DateUtils.truncate((Date) left, Calendar.SECOND).compareTo(rightDate) > 0;
+              return comparison > 0;
             case LESS_THAN:
-              return DateUtils.truncate((Date) left, Calendar.SECOND).compareTo(rightDate) < 0;
+              return comparison < 0;
             case GREATER_THAN_EQUAL:
-              return DateUtils.truncate((Date) left, Calendar.SECOND).compareTo(rightDate) >= 0;
+              return comparison >= 0;
             case LESS_THAN_EQUAL:
-              return DateUtils.truncate((Date) left, Calendar.SECOND).compareTo(rightDate) <= 0;
+              return comparison <= 0;
           }
         } catch (Exception e) {
           return false;

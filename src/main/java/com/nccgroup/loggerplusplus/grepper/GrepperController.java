@@ -92,18 +92,22 @@ public class GrepperController {
         GrepResults grepResults = null;
         if (entry != null) {
             grepResults = new GrepResults(entry);
+            // Optimization: Convert byte[] to String once and reuse
             if (entry.getRequestBytes() != null && searchRequests) {
-                processMatches(grepResults, pattern, entry.getRequestBytes(), true);
+                String requestContent = new String(entry.getRequestBytes());
+                processMatches(grepResults, pattern, requestContent, true);
             }
             if (entry.getResponseBytes() != null && searchResponses) {
-                processMatches(grepResults, pattern, entry.getResponseBytes(), false);
+                String responseContent = new String(entry.getResponseBytes());
+                processMatches(grepResults, pattern, responseContent, false);
             }
         }
         return grepResults;
     }
 
-    private void processMatches(GrepResults grepResults, Pattern pattern, byte[] content, boolean isRequest) {
-        final Matcher respMatcher = pattern.matcher(new String(content));
+    private void processMatches(GrepResults grepResults, Pattern pattern, String content, boolean isRequest) {
+        // Optimization: Accept String parameter to avoid repeated byte[] to String conversion
+        final Matcher respMatcher = pattern.matcher(content);
         while (respMatcher.find() && !Thread.currentThread().isInterrupted()) {
             String[] groups = new String[respMatcher.groupCount() + 1];
             for (int i = 0; i < groups.length; i++) {
