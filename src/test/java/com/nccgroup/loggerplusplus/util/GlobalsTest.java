@@ -172,6 +172,93 @@ class GlobalsTest {
     }
 
     @Test
+    @DisplayName("HTML_TITLE_PATTERN should handle title with tabs and multiple spaces")
+    void testHtmlTitlePattern_WithWhitespace() {
+        String html = "<title>Title\twith\t\ttabs  and   spaces</title>";
+        Matcher matcher = Globals.HTML_TITLE_PATTERN.matcher(html);
+        assertTrue(matcher.find());
+        assertEquals("Title\twith\t\ttabs  and   spaces", matcher.group(1));
+    }
+
+    @Test
+    @DisplayName("HTML_TITLE_PATTERN should handle title with unicode characters")
+    void testHtmlTitlePattern_WithUnicode() {
+        String html = "<title>Página de Início - 日本語 - Привет</title>";
+        Matcher matcher = Globals.HTML_TITLE_PATTERN.matcher(html);
+        assertTrue(matcher.find());
+        assertEquals("Página de Início - 日本語 - Привет", matcher.group(1));
+    }
+
+    @Test
+    @DisplayName("HTML_TITLE_PATTERN should handle title with HTML entities")
+    void testHtmlTitlePattern_WithHtmlEntities() {
+        String html = "<title>A &amp; B &lt; C &gt; D &quot;quoted&quot;</title>";
+        Matcher matcher = Globals.HTML_TITLE_PATTERN.matcher(html);
+        assertTrue(matcher.find());
+        assertEquals("A &amp; B &lt; C &gt; D &quot;quoted&quot;", matcher.group(1));
+    }
+
+    @Test
+    @DisplayName("HTML_TITLE_PATTERN should handle very long title")
+    void testHtmlTitlePattern_VeryLongTitle() {
+        String longTitle = "A".repeat(1000);
+        String html = "<title>" + longTitle + "</title>";
+        Matcher matcher = Globals.HTML_TITLE_PATTERN.matcher(html);
+        assertTrue(matcher.find());
+        assertEquals(longTitle, matcher.group(1));
+    }
+
+    @Test
+    @DisplayName("HTML_TITLE_PATTERN should handle title with leading and trailing whitespace")
+    void testHtmlTitlePattern_WithLeadingTrailingWhitespace() {
+        String html = "<title>  Title with spaces  </title>";
+        Matcher matcher = Globals.HTML_TITLE_PATTERN.matcher(html);
+        assertTrue(matcher.find());
+        assertEquals("  Title with spaces  ", matcher.group(1));
+    }
+
+    @Test
+    @DisplayName("HTML_TITLE_PATTERN should handle title with multiple newlines")
+    void testHtmlTitlePattern_WithMultipleNewlines() {
+        String html = "<title>Line 1\n\nLine 2\n\n\nLine 3</title>";
+        Matcher matcher = Globals.HTML_TITLE_PATTERN.matcher(html);
+        assertTrue(matcher.find());
+        assertEquals("Line 1\n\nLine 2\n\n\nLine 3", matcher.group(1));
+    }
+
+    @Test
+    @DisplayName("HTML_TITLE_PATTERN should handle title with carriage return and line feed")
+    void testHtmlTitlePattern_WithCRLF() {
+        String html = "<title>Windows\r\nLine\r\nBreaks</title>";
+        Matcher matcher = Globals.HTML_TITLE_PATTERN.matcher(html);
+        assertTrue(matcher.find());
+        assertEquals("Windows\r\nLine\r\nBreaks", matcher.group(1));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "<title>Test</TITLE>",
+        "<TITLE>Test</title>",
+        "<TiTlE>Test</tItLe>",
+        "<Title>Test</Title>"
+    })
+    @DisplayName("HTML_TITLE_PATTERN should handle various case combinations in tags")
+    void testHtmlTitlePattern_MixedCaseTags(String html) {
+        Matcher matcher = Globals.HTML_TITLE_PATTERN.matcher(html);
+        assertTrue(matcher.find(), "Should match: " + html);
+        assertEquals("Test", matcher.group(1));
+    }
+
+    @Test
+    @DisplayName("HTML_TITLE_PATTERN should handle title with special characters")
+    void testHtmlTitlePattern_WithSpecialCharacters() {
+        String html = "<title>!@#$%^&*()_+-=[]{}|;:',.<>?/~`</title>";
+        Matcher matcher = Globals.HTML_TITLE_PATTERN.matcher(html);
+        assertTrue(matcher.find());
+        assertEquals("!@#$%^&*()_+-=[]{}|;:',.<>?/~`", matcher.group(1));
+    }
+
+    @Test
     @DisplayName("Should have valid version format")
     void testVersion() {
         assertNotNull(Globals.VERSION);
