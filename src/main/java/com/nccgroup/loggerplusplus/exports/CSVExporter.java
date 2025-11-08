@@ -240,15 +240,31 @@ public class CSVExporter extends AutomaticLogExporter implements ContextMenuExpo
     private static String sanitize(String string){
         if(string == null) return null;
         if(string.length() == 0) return "";
-        char first = string.toCharArray()[0];
-        switch (first){
-            case '=':
-            case '-':
-            case '+':
-            case '@': {
-                return "'" + string;
-            }
+
+        // Fixed: Comprehensive CSV injection protection
+        // Escape ALL formula-triggering characters, not just prefix
+        char first = string.charAt(0);
+
+        // Check if starts with dangerous formula characters
+        if (first == '=' || first == '+' || first == '-' || first == '@' ||
+            first == '\t' || first == '\r' || first == '\n') {
+            // Prepend with single quote AND escape the character to prevent execution
+            string = "'" + string.replace("=", "'=")
+                                  .replace("+", "'+")
+                                  .replace("-", "'-")
+                                  .replace("@", "'@");
         }
+
+        // Also check for pipe character which can be used in DDE attacks
+        if (string.contains("|")) {
+            string = string.replace("|", "'|");
+        }
+
+        // Remove or escape any embedded formulas (defense in depth)
+        string = string.replace("\r\n=", "\r\n'=")
+                      .replace("\n=", "\n'=")
+                      .replace("\r=", "\r'=");
+
         return string;
     }
 

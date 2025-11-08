@@ -96,6 +96,12 @@ public class LoggerImport {
                 String line = i.next();
                 String[] v = line.split(","); // Format: "base64(request),base64(response),url"
 
+                // Fixed: Add bounds checking to prevent ArrayIndexOutOfBoundsException
+                if (v.length < 4) {
+                    log.error("LoggerImport-importWStalker: Malformed line - expected 4 fields, got " + v.length);
+                    continue; // Skip this line instead of failing entire import
+                }
+
                 String url = v[3];
                 Base64Utils b64Decoder = LoggerPlusPlus.montoya.utilities().base64Utils();
                 HttpService httpService = HttpService.httpService(url);
@@ -106,8 +112,8 @@ public class LoggerImport {
                 requests.add(requestResponse);
 
             } catch (Exception e) {
-                log.error("LoggerImport-importWStalker: Error Parsing Content");
-                return new ArrayList<>();
+                log.error("LoggerImport-importWStalker: Error Parsing Content: " + e.getMessage());
+                continue; // Continue processing other lines instead of failing entire import
             }
         }
 
@@ -173,6 +179,13 @@ public class LoggerImport {
                 try {
                     // Expected format: "GET https://whatever/whatever.html HTTP/1.1"
                     String[] x = line.split(" ");
+
+                    // Fixed: Add bounds checking
+                    if (x.length < 3) {
+                        log.error("importZAP: Wrong Path Format - expected 3 fields, got " + x.length);
+                        continue; // Skip this line instead of failing entire import
+                    }
+
                     url = x[1];
 
                     URL u = new URL(url);
@@ -180,8 +193,8 @@ public class LoggerImport {
                     line = x[0] + " " + path + " " + x[2]; // fix the path in the request
 
                 } catch (Exception e) {
-                    log.error("importZAP: Wrong Path Format");
-                    return new ArrayList<>();
+                    log.error("importZAP: Wrong Path Format: " + e.getMessage());
+                    continue; // Continue instead of failing entire import
                 }
             }
 

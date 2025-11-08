@@ -118,6 +118,10 @@ public class ElasticExporter extends AutomaticLogExporter implements ExportPanel
         InetAddress address = InetAddress.getByName(preferences.getSetting(Globals.PREF_ELASTIC_ADDRESS));
         int port = preferences.getSetting(Globals.PREF_ELASTIC_PORT);
         indexName = preferences.getSetting(Globals.PREF_ELASTIC_INDEX);
+
+        // Fixed: Validate index name to prevent injection attacks
+        validateIndexName(indexName);
+
         String protocol = preferences.getSetting(Globals.PREF_ELASTIC_PROTOCOL).toString();
         RestClientBuilder restClientBuilder = RestClient.builder(new HttpHost(address, port, protocol));
         logger.info(String.format("Starting ElasticSearch exporter. %s://%s:%s/%s", protocol, address, port, indexName));
@@ -139,7 +143,8 @@ public class ElasticExporter extends AutomaticLogExporter implements ExportPanel
         }
 
         if (!"".equals(user) && !"".equalsIgnoreCase(pass)) {
-            logger.info(String.format("ElasticSearch using %s, Username: %s", authType, user));
+            // Fixed: Do not log credentials - security vulnerability
+            logger.info(String.format("ElasticSearch using %s authentication", authType));
             String authValue = Base64.getEncoder().encodeToString((user + ":" + pass).getBytes(StandardCharsets.UTF_8));
             restClientBuilder.setDefaultHeaders(new Header[]{new BasicHeader("Authorization", String.format("%s %s", authType, authValue))});
         }
@@ -278,6 +283,55 @@ public class ElasticExporter extends AutomaticLogExporter implements ExportPanel
     public void setFields(List<LogEntryField> fields) {
         preferences.setSetting(Globals.PREF_PREVIOUS_ELASTIC_FIELDS, fields);
         this.fields = fields;
+    }
+
+    /**
+     * Validates Elasticsearch index name to prevent injection attacks
+     * @param indexName Index name to validate
+     * @throws Exception if index name is invalid or dangerous
+     */
+    private void validateIndexName(String indexName) throws Exception {
+        if (indexName == null || indexName.trim().isEmpty()) {
+            throw new Exception("Index name cannot be empty");
+        }
+
+        // Elasticsearch index name restrictions (per official documentation)
+        // - Must be lowercase
+        // - Cannot contain: \, /, *, ?, ", <, >, |, ` ` (space), comma, #
+        // - Cannot start with -, _, +
+        // - Cannot be . or ..
+        // - Cannot be longer than 255 bytes
+
+        if (indexName.length() > 255) {
+            throw new Exception("Index name too long (max 255 characters)");
+        }
+
+        if (indexName.equals(".") || indexName.equals("..")) {
+            throw new Exception("Index name cannot be '.' or '..'");
+        }
+
+        char firstChar = indexName.charAt(0);
+        if (firstChar == '-' || firstChar == '_' || firstChar == '+') {
+            throw new Exception("Index name cannot start with -, _, or +");
+        }
+
+        // Check for dangerous wildcard characters that could enable unauthorized access
+        String[] dangerousChars = {"*", "?", "..", "//", "\\", "|", "<", ">", "\"", "#"};
+        for (String dangerousChar : dangerousChars) {
+            if (indexName.contains(dangerousChar)) {
+                throw new Exception("Index name contains forbidden character: " + dangerousChar);
+            }
+        }
+
+        // Must be lowercase (Elasticsearch requirement)
+        if (!indexName.equals(indexName.toLowerCase())) {
+            throw new Exception("Index name must be lowercase");
+        }
+
+        // Only allow alphanumeric, hyphen, and underscore (secure subset)
+        if (!indexName.matches("^[a-z0-9][a-z0-9_-]*$")) {
+            throw new Exception("Index name can only contain lowercase letters, numbers, hyphens, and underscores");
+        }
     }
 
     private class EntrySerializer extends StdSerializer<LogEntry> {

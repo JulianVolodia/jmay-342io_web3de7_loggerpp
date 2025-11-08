@@ -65,8 +65,10 @@ public class LogProcessor {
 
         this.entriesPendingProcessing = new ConcurrentHashMap<>();
         this.entryProcessingFutures = new ConcurrentHashMap<>();
-        this.entryProcessExecutor = new PausableThreadPoolExecutor(0, 2147483647,
-                30L, TimeUnit.SECONDS, new SynchronousQueue<>(), new NamedThreadFactory("LPP-LogManager"));
+        // Fixed: Bounded thread pool to prevent resource exhaustion (was Integer.MAX_VALUE = 2.1B threads)
+        // Maximum 100 threads with bounded queue to prevent OOM
+        this.entryProcessExecutor = new PausableThreadPoolExecutor(0, 100,
+                30L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(1000), new NamedThreadFactory("LPP-LogManager"));
         this.entryImportExecutor = new PausableThreadPoolExecutor(0, 10, 60L,
                 TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new NamedThreadFactory("LPP-Import"));
 

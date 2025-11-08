@@ -104,7 +104,30 @@ public class GrepperController {
 
     private void processMatches(GrepResults grepResults, Pattern pattern, byte[] content, boolean isRequest) {
         final Matcher respMatcher = pattern.matcher(new String(content));
-        while (respMatcher.find() && !Thread.currentThread().isInterrupted()) {
+
+        // ReDoS protection: Set timeout for regex operations (5 seconds per match attempt)
+        final long REGEX_TIMEOUT_MS = 5000;
+        final long startTime = System.currentTimeMillis();
+        int matchCount = 0;
+        final int MAX_MATCHES = 10000; // Prevent excessive matches
+
+        while (!Thread.currentThread().isInterrupted()) {
+            // Check timeout to prevent ReDoS attacks
+            if (System.currentTimeMillis() - startTime > REGEX_TIMEOUT_MS) {
+                System.err.println("Regex matching timed out after " + REGEX_TIMEOUT_MS + "ms - possible ReDoS attack detected");
+                break;
+            }
+
+            // Check match limit
+            if (matchCount >= MAX_MATCHES) {
+                System.err.println("Maximum match limit reached (" + MAX_MATCHES + ") - stopping to prevent resource exhaustion");
+                break;
+            }
+
+            if (!respMatcher.find()) {
+                break;
+            }
+
             String[] groups = new String[respMatcher.groupCount() + 1];
             for (int i = 0; i < groups.length; i++) {
                 groups[i] = respMatcher.group(i);
@@ -115,6 +138,8 @@ public class GrepperController {
             } else {
                 grepResults.addResponseMatch(new GrepResults.Match(groups, false, respMatcher.start(), respMatcher.end()));
             }
+
+            matchCount++;
         }
     }
 

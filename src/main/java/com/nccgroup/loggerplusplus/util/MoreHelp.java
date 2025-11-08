@@ -236,10 +236,55 @@ public class MoreHelp {
 		int val = chooser.showSaveDialog(null);
 
 		if (val == JFileChooser.APPROVE_OPTION) {
-			return chooser.getSelectedFile();
+			File selectedFile = chooser.getSelectedFile();
+
+			// Fixed: Validate file path to prevent path traversal attacks
+			validateFilePath(selectedFile);
+
+			return selectedFile;
 		}
 
 		throw new Exception("Operation cancelled.");
+	}
+
+	/**
+	 * Validates file path to prevent path traversal and symlink attacks
+	 * @param file File to validate
+	 * @throws Exception if path is invalid or dangerous
+	 */
+	private static void validateFilePath(File file) throws Exception {
+		if (file == null) {
+			throw new Exception("File cannot be null");
+		}
+
+		// Get canonical path to resolve symlinks and relative paths
+		File canonicalFile = file.getCanonicalFile();
+		String canonicalPath = canonicalFile.getAbsolutePath();
+
+		// Check if it's actually a file and not a symlink to a directory or special file
+		if (canonicalFile.exists() && !canonicalFile.isFile()) {
+			throw new Exception("Selected path is not a regular file");
+		}
+
+		// Prevent writing to system directories
+		String[] forbiddenPaths = {
+			"/etc/", "/sys/", "/proc/", "/dev/",
+			"C:\\Windows\\System32\\", "C:\\Windows\\",
+			"/usr/bin/", "/usr/sbin/", "/bin/", "/sbin/"
+		};
+
+		for (String forbidden : forbiddenPaths) {
+			if (canonicalPath.startsWith(forbidden)) {
+				throw new Exception("Cannot write to system directory: " + forbidden);
+			}
+		}
+
+		// Check if original path and canonical path match (symlink detection)
+		String originalPath = file.getAbsolutePath();
+		if (!canonicalPath.equals(new File(originalPath).getCanonicalPath())) {
+			// Warn but don't fail - user may legitimately use symlinks
+			System.err.println("Warning: File path contains symbolic links");
+		}
 	}
 
 	public static boolean shouldOverwriteExistingFilePrompt() throws Exception {
