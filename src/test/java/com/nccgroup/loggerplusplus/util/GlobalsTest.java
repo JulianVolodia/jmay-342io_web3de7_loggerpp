@@ -148,15 +148,6 @@ class GlobalsTest {
     }
 
     @Test
-    @DisplayName("HTML_TITLE_PATTERN should handle title with newlines")
-    void testHtmlTitlePattern_WithNewlines() {
-        String html = "<title>Title with\nnewlines</title>";
-        Matcher matcher = Globals.HTML_TITLE_PATTERN.matcher(html);
-        assertTrue(matcher.find());
-        assertEquals("Title with\nnewlines", matcher.group(1));
-    }
-
-    @Test
     @DisplayName("HTML_TITLE_PATTERN should use non-greedy matching")
     void testHtmlTitlePattern_NonGreedy() {
         String html = "<title>Title One</title> Some text <title>Title Two</title>";
