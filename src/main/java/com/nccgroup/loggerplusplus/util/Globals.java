@@ -144,5 +144,5 @@ public class Globals {
 
 
     public static final Pattern LOG_ENTRY_ID_PATTERN = Pattern.compile("\\$LPP:(\\d+)\\$");
-    public static final Pattern HTML_TITLE_PATTERN = Pattern.compile("<title>(.+?)</title>", Pattern.CASE_INSENSITIVE);
+    public static final Pattern HTML_TITLE_PATTERN = Pattern.compile("<title>(.+?)</title>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 }
