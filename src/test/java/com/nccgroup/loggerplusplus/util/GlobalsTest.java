@@ -148,6 +148,15 @@ class GlobalsTest {
     }
 
     @Test
+    @DisplayName("HTML_TITLE_PATTERN should NOT match title with newlines (no DOTALL flag)")
+    void testHtmlTitlePattern_DoesNotMatchNewlines() {
+        // The pattern does not have Pattern.DOTALL, so . does not match \n
+        String html = "<title>Title with\nnewlines</title>";
+        Matcher matcher = Globals.HTML_TITLE_PATTERN.matcher(html);
+        assertFalse(matcher.find(), "Pattern should not match titles containing newlines");
+    }
+
+    @Test
     @DisplayName("HTML_TITLE_PATTERN should use non-greedy matching")
     void testHtmlTitlePattern_NonGreedy() {
         String html = "<title>Title One</title> Some text <title>Title Two</title>";
