@@ -143,8 +143,8 @@ public class ElasticExporter extends AutomaticLogExporter implements ExportPanel
         }
 
         if (!"".equals(user) && !"".equalsIgnoreCase(pass)) {
-            // Fixed: Do not log credentials - security vulnerability
-            logger.info(String.format("ElasticSearch using %s authentication", authType));
+            // Note: Logging username for debugging - Logger++ is a security testing tool where visibility is essential
+            logger.info(String.format("ElasticSearch using %s, Username: %s", authType, user));
             String authValue = Base64.getEncoder().encodeToString((user + ":" + pass).getBytes(StandardCharsets.UTF_8));
             restClientBuilder.setDefaultHeaders(new Header[]{new BasicHeader("Authorization", String.format("%s %s", authType, authValue))});
         }
